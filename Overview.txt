@@ -1,0 +1,201 @@
+Overview
+Build a dark futuristic 3D portfolio for Satyam Chandra with: interactive Three.js hero, smooth Framer Motion animations, Firebase-powered CMS admin panel, 3D medals/badges section, and a Gemini AI chatbot.
+
+Tech Stack
+LayerTechnologyFrameworkNext.js 16 (App Router)3D EngineReact Three Fiber + @react-three/dreiAnimationsFramer Motion (page transitions, scroll reveals, micro-interactions)Smooth ScrollCSS scroll-behavior: smooth + Framer Motion scroll-linked animationsDatabase/CMSFirebase Firestore + Firebase Storage (media uploads)AuthFirebase Authentication (email/password for admin)AI ChatbotGoogle Gemini API via Next.js API routeUI Libraryshadcn/ui (already installed) + Tailwind CSS v43D Tilt EffectsCustom CSS perspective transforms (no extra dependency)
+
+Design System - Dark Futuristic Theme
+Color Palette:
+
+Background: Deep space black (#0a0a0f)
+Surface/Cards: Dark navy (#111827 / #1a1a2e)
+Primary accent: Neon cyan (#00f0ff)
+Secondary accent: Electric purple (#8b5cf6)
+Text: Cool white (#e2e8f0)
+Muted text: Slate gray (#64748b)
+Borders: Subtle glow lines (rgba(0, 240, 255, 0.1))
+Gradients: Cyan-to-purple for key elements
+
+Effects:
+3D Parallax Tilt Effect combined with Glassmorphism. { Certificates and achievements Badges }
+Glassmorphism cards with backdrop-blur
+Neon glow on hover states
+Scan-line / grid-dot subtle background patterns
+Particle field or floating geometry in the hero
+
+
+File Structure
+app/
+  layout.tsx                    # Root layout with dark theme, font, smooth scroll
+  page.tsx                      # Main portfolio page (all sections)
+  globals.css                   # Dark futuristic theme tokens
+  admin/
+    layout.tsx                  # Admin layout with sidebar
+    page.tsx                    # Admin dashboard
+    login/page.tsx              # Admin login
+    hero/page.tsx               # Edit hero section
+    about/page.tsx              # Edit about section
+    education/page.tsx          # Edit education
+    experience/page.tsx         # Edit experience
+    skills/page.tsx             # Edit skills
+    projects/page.tsx           # Edit projects
+    certifications/page.tsx     # Edit certifications
+    medals/page.tsx             # Edit medals/badges
+    contact/page.tsx            # Edit contact info
+    chatbot/page.tsx            # Edit AI chatbot context
+  api/
+    chat/route.ts               # Gemini AI chatbot API
+    admin/[collection]/route.ts # Generic CRUD API for Firestore
+
+components/
+  portfolio/
+    navbar.tsx                  # Floating nav with glass effect
+    hero-section.tsx            # 3D hero with R3F canvas
+    about-section.tsx           # About with parallax
+    education-section.tsx       # Timeline education
+    experience-section.tsx      # Experience cards
+    skills-section.tsx          # Animated skill bars/circles
+    projects-section.tsx        # 3D tilt project cards
+    certifications-section.tsx  # Cert cards
+    medals-section.tsx          # 3D spinning coins/badges
+    contact-section.tsx         # Contact form
+    footer.tsx                  # Footer
+  three/
+    hero-scene.tsx              # R3F hero 3D scene (floating geometry)
+    medal-coin.tsx              # 3D spinning medal/coin component
+    floating-particles.tsx      # Particle system background
+  ui/                           # (existing shadcn components)
+  chatbot/
+    chat-widget.tsx             # Floating chatbot UI
+    chat-messages.tsx           # Message display
+  admin/
+    admin-sidebar.tsx           # Admin nav sidebar
+    crud-form.tsx               # Reusable CRUD form component
+    media-upload.tsx            # Firebase Storage upload component
+    auth-guard.tsx              # Route protection HOC
+
+lib/
+  firebase.ts                   # Firebase app init + Firestore/Storage/Auth exports
+  firestore.ts                  # Generic Firestore CRUD helpers
+  types.ts                      # TypeScript interfaces for all data models
+  utils.ts                      # (existing)
+
+
+Implementation Steps (Ordered)
+Step 1: Foundation - Theme, Firebase, Layout
+Files: globals.css, lib/firebase.ts, lib/firestore.ts, lib/types.ts, app/layout.tsx
+
+Update globals.css with dark futuristic color tokens (neon cyan/purple accents on deep black)
+Create lib/firebase.ts - Initialize Firebase app, export db (Firestore), storage, auth
+Create lib/firestore.ts - Generic CRUD helpers: getDoc, getDocs, setDoc, updateDoc, deleteDoc, uploadFile
+Create lib/types.ts - Define all TypeScript interfaces:
+
+HeroData, AboutData, EducationItem, ExperienceItem, SkillCategory, ProjectItem, CertificationItem, MedalItem, ContactData, ChatContext
+
+
+Update app/layout.tsx with metadata for "Satyam Chandra | Portfolio", dark class, Inter/Geist font
+
+Step 2: Main Portfolio Page - All Sections
+Files: app/page.tsx, all components/portfolio/*.tsx
+Build the single-page portfolio with all sections. Each section reads data from Firestore with fallback placeholder data (so the site works even before CMS data exists).
+Sections in order:
+
+Navbar - Floating glassmorphism nav, sticky, with section links + glow underline on active
+Hero - Full viewport, animated text reveal with Framer Motion, 3D React Three Fiber canvas with floating geometric shapes (icosahedron, torus knot, octahedron) that rotate and react to mouse. Neon cyan glow. CTA buttons.
+About - Split layout: text left, decorative right. Stagger-in animations on scroll.
+Education - Vertical timeline with glowing line and cards that slide in.
+Experience - Similar timeline/card layout with tech stack badges.
+Skills - Categorized grid with animated progress bars/rings. Glow on fill.
+Projects - Card grid with 3D tilt on hover (CSS perspective transform)3D Parallax Tilt Effect combined with Glassmorphism.. Image, title, description, tech stack tags, links. Cards have neon border glow.
+Medals/Badges - Dedicated section with 3D spinning coins rendered via R3F. Each medal shows platform icon, achievement text. Hover to spin faster.
+Certifications - Card grid similar to projects(3D Parallax Tilt Effect combined with Glassmorphism).
+Contact - Form + social links. Glowing submit button.
+Footer - Minimal with social links.
+
+Animation strategy:
+
+Each section uses Framer Motion motion.div with whileInView for scroll-triggered reveals
+Staggered children animations using variants with staggerChildren
+3D tilt on cards via onMouseMove calculating rotateX/rotateY with CSS perspective
+Hero 3D scene lazy-loaded with dynamic(() => import(...), { ssr: false })
+
+Step 3: 3D Components (React Three Fiber)
+Files: components/three/hero-scene.tsx, components/three/medal-coin.tsx, components/three/floating-particles.tsx
+
+Hero Scene: Canvas with floating geometric meshes (Icosahedron, TorusKnot, Octahedron) using drei. Neon wireframe material with cyan/purple emissive. Mouse-follow rotation via useFrame. Environment lighting set to "night" preset.
+Medal Coin: A cylinder geometry with text on faces. Shiny metallic material. Auto-rotation with speed boost on hover. Wrapped in Html overlay for labels.
+Floating Particles: Instanced mesh with many small spheres drifting slowly. Adds ambient depth.
+
+Step 4: AI Chatbot
+Files: app/api/chat/route.ts, components/chatbot/chat-widget.tsx, components/chatbot/chat-messages.tsx
+
+API Route: POST handler that takes messages array, prepends system prompt with user's context document (stored in Firestore settings/chatbot), calls Google Gemini API (generativelanguage.googleapis.com), streams response back.
+Chat Widget: Floating button (bottom-right) with neon glow pulse. Opens a slide-up chat panel with glassmorphism styling. Input field + message list. Uses fetch to stream responses.
+Chat Messages: Renders user/AI messages with different styling. Typing indicator with animated dots.
+
+Step 5: Admin Panel - Auth + Layout
+Files: app/admin/login/page.tsx, app/admin/layout.tsx, components/admin/admin-sidebar.tsx, components/admin/auth-guard.tsx
+
+Login Page: Email/password form using Firebase Auth signInWithEmailAndPassword. Clean dark UI.
+Auth Guard: Client component that checks onAuthStateChanged. Redirects to login if not authenticated.
+Admin Layout: Sidebar navigation to all editable sections. Uses shadcn Sidebar component. Protected by Auth Guard.
+Dashboard: Overview page showing quick stats (number of projects, skills, etc.)
+
+Step 6: Admin CRUD Pages
+Files: app/api/admin/[collection]/route.ts, all app/admin/*/page.tsx, components/admin/crud-form.tsx, components/admin/media-upload.tsx
+
+Generic API: Dynamic route that handles GET/POST/PUT/DELETE for any Firestore collection.
+CRUD Form: Reusable form component that takes a field schema and renders appropriate inputs (text, textarea, image upload, array of tags, etc.)
+Media Upload: Component that uploads files to Firebase Storage, returns the download URL.
+Per-section admin pages: Each section gets a page with:
+
+List view (table) of existing items
+Add/Edit dialog with the CRUD form
+Delete confirmation
+Drag-to-reorder (for ordering items)
+For singleton data (Hero, About, Contact): direct edit form instead of list
+
+
+
+Firestore Collections Schema
+hero/main          - { title, subtitle, description, ctaText, ctaLink }
+about/main         - { bio, details: [...], imageUrl }
+education/[id]     - { institution, degree, period, description, order }
+experience/[id]    - { company, role, period, description, techStack: [...], order }
+skills/[id]        - { category, items: [{ name, proficiency }], order }
+projects/[id]      - { title, description, techStack: [...], imageUrl, liveUrl, githubUrl, featured, order }
+certifications/[id] - { title, issuer, date, credentialUrl, imageUrl, order }
+medals/[id]        - { platform, achievement, description, iconUrl, color, order }
+contact/main       - { email, phone, location, socials: { github, linkedin, twitter, ... } }
+settings/chatbot   - { contextDocument, systemPrompt, enabled }
+
+
+Environment Variables Needed
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBVLhW120C2eqvy9EJ15lPk2VymyDjNx0c
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=portfolio-3a687.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=portfolio-3a687
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=portfolio-3a687.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=182829489326
+NEXT_PUBLIC_FIREBASE_APP_ID=1:182829489326:web:8ec376acb657212885613f
+GOOGLE_GEMINI_API_KEY=AIzaSyBAhK9dWsgxYiq6a9ye6x25nlywvsvd-4A
+
+AIzaSyBAhK9dWsgxYiq6a9ye6x25nlywvsvd-4A
+
+NPM Packages to Add
+firebase                   # Firestore, Auth, Storage
+@react-three/fiber         # React Three Fiber
+@react-three/drei          # Drei helpers (Text, Environment, Html, etc.)
+three                      # Three.js core
+@types/three               # Three.js types
+framer-motion              # Animations
+
+
+Key Design Decisions
+
+Single-page portfolio - All sections on one page with smooth scroll navigation (better UX for portfolios)
+Server-side data fetching - Portfolio page uses server components to fetch Firestore data, with revalidate for ISR
+Client-side 3D - All R3F components are client-only with dynamic import + ssr: false
+Fallback data - Every section has hardcoded placeholder data so the site works before any CMS data is added
+Admin is fully client-side - Admin panel uses client components with Firebase SDK directly (no server actions needed)
+Gemini streaming - Chat API streams responses for real-time feel
+No Lenis - Using native smooth scroll + Framer Motion scroll animations (avoids extra bundle + complexity)
